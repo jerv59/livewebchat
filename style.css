@@ -90,7 +90,7 @@ a.remix:hover {
 }
 .img-container {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 .illustration {
   max-height: var(--avatar-max-width);
