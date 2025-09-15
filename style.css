@@ -63,7 +63,6 @@ header {
   display: flex;
   gap: 1em;
   flex-wrap: wrap;
-  /* justify-content: space-between */
   align-items: center;
   text-align: left;
   justify-content: center;
