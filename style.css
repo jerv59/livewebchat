@@ -66,6 +66,7 @@ header {
   #justify-content: space-between;
   align-items: center;
   text-align: left;
+  justify-content: center;
 }
 
 /* Link styles */
