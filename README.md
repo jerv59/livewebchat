@@ -4,7 +4,6 @@ Sitio web promocional para comunicar los beneficios de Comunicaciones Unificadas
 
 ## Estructura
 ```
-html/index.html
 css/styles.css
 js/app.js
 assets/images/
