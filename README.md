@@ -10,10 +10,6 @@ js/app.js
 assets/images/
 ```
 
-## Uso
-1. Abrir `html/index.html` en navegador.
-2. Personalizar contactos, correos y logo en `assets/images/logo.png`.
-
 ## Contacto
 - WhatsApp: `+57 318 587 3306`
 - Email: Jhon.Romero@tigo.com.co
