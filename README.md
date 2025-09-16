@@ -11,5 +11,4 @@ assets/images/
 ```
 
 ## Contacto
-- WhatsApp: `+57 318 587 3306`
 - Email: Jhon.Romero@tigo.com.co
