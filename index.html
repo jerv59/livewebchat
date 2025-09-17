@@ -31,7 +31,7 @@
       <div class="cta-stack">
         <a class="btn phone" href="tel:+576046098731"><i class="fas fa-phone"></i> <img src="images/llamada.png" alt="Llamar" class="icono"> Contactenos</a>
         <a class="btn email" href="mailto:clientes.support@pocbancolombia.ucteamsidc.tigo.com.co"><i class="fas fa-envelope"></i> <img src="images/email.png" alt="Email" class="icono"> Correo</a>
-        <a class="btn clic2call" href=""><i class=""></i> <img src="images/call.png" alt="Llamada Web" class="icono"> Hablar con Agente</a>
+        <a class="btn clic2call" href="#" id="btnCall"> <img src="images/call.png" alt="Llamada Web" class="icono"> Hablar con Agente</a>
         <a class="btn chat"><i class="fas fa-phone"></i> <img src="images/llamada.png" alt="Llamar" class="icono"> Contactenos</a><div id="webex-dialer"></div>
       </div>
     </section>
@@ -85,8 +85,33 @@
       theme: 'light'
     });
   </script>
-    
+  <!-- jscript web dialer -->  
 
+    <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const callBtn = document.getElementById('btnCall');
+    const dialer = document.getElementById('webex-dialer');
+    let isDialerVisible = false;
+
+    callBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      isDialerVisible = !isDialerVisible;
+      dialer.style.display = isDialerVisible ? 'block' : 'none';
+    });
+
+    // Inicializa el widget solo una vez
+    webexCallWidget.init({
+      elementId: 'webex-dialer',
+      orgId: 'e8a35262-0627-40d1-9b31-82b6b9af3653',
+      queueId: '9eeb05c1-45c4-4711-83a5-33dc7b9aa693',
+      entryPoint: '89a4ba77-f787-47b5-ad0a-2bea58cbb5aa',
+      locale: 'es',
+      theme: 'light'
+    });
+  });
+</script>
+
+    
   <!-- Botones flotantes -->
   <div class="fab-group">
       <!-- Widget IMI Chat Webex -->
@@ -96,6 +121,7 @@
   </div> 
 
 
+    
     
   <footer class="footer">
     <p>© <span id="copyYear"></span> TIGO</p>
