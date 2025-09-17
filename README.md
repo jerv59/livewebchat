@@ -6,7 +6,7 @@ Sitio web promocional para comunicar los beneficios de Comunicaciones Unificadas
 ```
 css/styles.css
 js/app.js
-assets/images/
+images/
 ```
 
 ## Contacto
