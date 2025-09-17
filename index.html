@@ -31,7 +31,7 @@
       <div class="cta-stack">
         <a class="btn phone" href="tel:+576046098731"><i class="fas fa-phone"></i> <img src="images/llamada.png" alt="Llamar" class="icono"> Contactenos</a>
         <a class="btn email" href="mailto:clientes.support@pocbancolombia.ucteamsidc.tigo.com.co"><i class="fas fa-envelope"></i> <img src="images/email.png" alt="Email" class="icono"> Correo</a>
-        <a class="btn clic2call" href="#" id="btnCall"> <img src="images/call.png" alt="Llamada Web" class="icono"> Hablar con Agente</a>
+        <a class="btn clic2call" href="#" id="btnCall" onclick="initiateCall()"> <img src="images/call.png" alt="Llamada Web" class="icono"> Hablar con Agente</a>
         <a class="btn chat"><i class="fas fa-phone"></i> <img src="images/llamada.png" alt="Llamar" class="icono"> Contactenos</a><div id="webex-dialer"></div>
       </div>
     </section>
@@ -72,7 +72,7 @@
         <p style="margin-top:10px;color:var(--muted)">O contacta directamente: <a href="mailto:clientes.support@pocbancolombia.ucteamsidc.tigo.com.co">clientes.support@pocbancolombia.ucteamsidc.tigo.com.co</a> · <a href="tel:+576046098731">+57 604 609 8731</a></p>
       </section>
 
-  <!-- jscript web dialer -->  
+  <!-- jscript web dialer   
 
     <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -96,8 +96,30 @@
       theme: 'light'
     });
   });
-</script>
+</script> -->
 
+
+    		<!-- Call Notification -->
+		<div class="incoming-call-notification timestate" id="callNotification">
+			<div class="notifier-a">
+				<div class="call-avatar"></div>
+				<div class="call-info">
+					<div class="callee-name">Customer Care</div>
+				</div>
+				<div class="call-time" id="call-time">
+					<span id="timer">00:01</span>
+					<span class="blink_me" id="hold-status">On Hold</span>
+				</div>
+				<div class="call-actions">
+					<button class="cut-call-btn" onclick="disconnectCall()"><i class="fa fa-times"></i></button>
+				</div>
+			</div>
+			<div class="notifier-a-controls hide-controls" id="notifier-a-controls">
+				<button class="mute tooltip-trigger" data-tooltip="Mute" onclick="toggleMute()"><i class="fa fa-microphone-slash"></i></button>
+			</div>
+		</div>
+
+		<audio id="customer-remote-audio" autoplay></audio>
     
   <!-- Botones flotantes -->
   <div class="fab-group">
@@ -108,7 +130,17 @@
   </div> 
 
 
-    
+	<script src="https://unpkg.com/webex/umd/webex.min.js"></script>
+	<script src='https://unpkg.com/webex@3.5.0-next.25/umd/calling.min.js'></script>
+	<script type="text/javascript" src="./js/timer.js"></script>
+	<script type="text/javascript" src="./js/app.js"></script>
+	<script type="text/javascript" src="./sdk/calling-sdk.js"></script>
+	<script type="text/javascript">
+		window.onload = () => {
+			initCalling('customer');
+		}
+	</script>
+
     
   <footer class="footer">
     <p>© <span id="copyYear"></span> TIGO</p>
