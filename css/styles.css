@@ -21,9 +21,10 @@ body{font-family:'Inter',sans-serif;line-height:1.6;background:#f9fafb;color:#11
 .btn.clic2call{background: #992df8}
 .btn.primary{background:#2563eb}
 
-.fab-group{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:12px;}
-.fab{width:70px;height:70px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#000;text-decoration:none;font-size:20px;}
-.fab.whatsapp{background:transparent}
+.fab-group{position:fixed;right:20px;bottom:90px;display:flex;flex-direction:column;gap:12px;z-index: 100000}
+.fab{width:70px;height:70px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#000;text-decoration:none;font-size:20px;  box-shadow: 2px 2px 8px rgba(0,0,0,0.3);transition: all 0.3s ease}
+.fab.whatsapp{background: #1ebe5d;transform: scale(1.05)}
+.fab.imichat {background: #005cde;color: #fff;font-size: 18px}
 
 .section{padding:3rem 2rem;max-width:1100px;margin:auto;text-align:center}
 .grid-2,.grid-3{display:grid;gap:1.5rem}
