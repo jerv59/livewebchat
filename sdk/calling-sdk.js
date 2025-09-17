@@ -176,7 +176,7 @@ async function answerCall() {
         callNotification.startTimer();
 
         incomingCall.on('caller_id', (CallerIdEmitter) => {
-            callerName.innerText = 'Harvey Spector';
+            callerName.innerText = 'Customer';
             callerNumber.innerText = CallerIdEmitter.callerId.num;
         });
 
