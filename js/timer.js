@@ -1,41 +1,31 @@
-class Timer {
-    constructor(callTime) {
-        this.minutes = 0;
-        this.seconds = 0;
-        this.interval = null;
-        this.elementToUpdate = callTime;
-    }
+// timer.js
+// Maneja el temporizador en la notificación de llamada
 
-    _updateDisplay() {
-        this.elementToUpdate.innerHTML = `${this.minutes < 10 ? '0' + this.minutes : this.minutes}:${this.seconds < 10 ? '0' + this.seconds : this.seconds}`;
-    }
+let callTimer;
+let seconds = 0;
 
-    start() {
-        if (this.interval) {
-            clearInterval(this.interval); // To ensure no multiple intervals are created if start is called multiple times.
-        }
-        this.interval = setInterval(() => {
-            this.seconds++;
-            if(this.seconds === 60){
-                this.seconds = 0;
-                this.minutes++;
-            }
-            this._updateDisplay();
-        }, 1000);
-    }
-
-    pause() {
-        clearInterval(this.interval);
-    }
-
-    continue() {
-        this.start();
-    }
-
-    stop() {
-        clearInterval(this.interval);
-        this.minutes = 0;
-        this.seconds = 0;
-        this._updateDisplay();
-    }
+function startTimer() {
+  stopTimer(); // Reinicia si ya había un timer corriendo
+  seconds = 0;
+  callTimer = setInterval(updateTimer, 1000);
 }
+
+function stopTimer() {
+  if (callTimer) {
+    clearInterval(callTimer);
+    callTimer = null;
+  }
+}
+
+function updateTimer() {
+  seconds++;
+  const timerEl = document.getElementById("timer");
+  if (!timerEl) return;
+
+  const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const secs = String(seconds % 60).padStart(2, "0");
+  timerEl.textContent = `${mins}:${secs}`;
+}
+
+// DEPRECATED: soporte para múltiples timers (solo se usa uno actualmente)
+// function startSecondTimer() { ... }
