@@ -2,6 +2,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;line-height:1.6;background:#f9fafb;color:#111111}
 
+
 /* HEADER */
 .header{display:flex;justify-content:space-between;align-items:center;padding:1rem 2rem;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.1);position:sticky;top:0;z-index:100}
 .logo{width:80px;height:60px;margin-right:.5rem}
@@ -44,7 +45,7 @@ body{font-family:'Inter',sans-serif;line-height:1.6;background:#f9fafb;color:#11
 /* CONTACT */
 .contact form{display:flex;flex-direction:column;gap:1rem;max-width:500px;margin:auto}
 .contact input,.contact textarea{padding:.8rem;border-radius:8px;border:1px solid #ccc;font-size:1rem}
-.footer{text-align:center;padding:1rem;background:#f1f5f9;color:#555;margin-top:2rem}
+.footer{text-align:center;padding:1rem;background:#f1f5f9;color:#555;margin-top:2rem;position:relative;bottom: 0;width: 100%;}
 
 /* DEPRECATED: estilos para chat modal (no hay HTML asociado) */
 /*
