@@ -1,18 +1,23 @@
-/* RESET */
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;line-height:1.6;background:#f9fafb;color:#111111}
+
+/* === NUEVO: estructura para footer sticky === */
 html, body {
   height: 100%;
+  margin: 0;
+}
+
+.page-container {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
-main {
-  flex: 1;
+.content-wrap {
+  flex: 1; /* empuja el footer hacia abajo */
 }
+/* === FIN ajuste === */
 
-
-/* HEADER */
 .header{display:flex;justify-content:space-between;align-items:center;padding:1rem 2rem;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.1);position:sticky;top:0;z-index:100}
 .logo{width:80px;height:60px;margin-right:.5rem}
 .icono{width:25px;height:25px;margin-right:.5rem}
@@ -20,48 +25,63 @@ main {
 .nav a{margin-left:1rem;text-decoration:none;color:#111;font-weight:600;background-color: transparent;transition: 0.2ms;}
 .nav a:hover {text-decoration: underline;text-decoration-color: #1d4ed8;}
 
-/* HERO */
 .hero{padding:4rem 2rem;text-align:center;background:linear-gradient(135deg,#0ea5a6,#2563eb);color:#fff}
 .hero h2{font-size:2rem;margin-bottom:1rem}
 .hero p{margin-bottom:1.5rem}
 .cta-stack{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem}
 
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.3rem .3rem;border-radius:8px;font-weight:600;text-decoration:none;color:#fff;transition:.3s}
 .btn.whatsapp{background:#25d366}
 .btn.phone{background:#1d4ed8}
 .btn.email{background:#6b7280}
-.btn.chat{background:#f59e0b} /* DEPRECATED: botón duplicado */
+.btn.chat{background:#f59e0b}
 .btn.clic2call{background: #992df8}
 .btn.primary{background:#2563eb}
 
-/* FLOATING BUTTONS */
 .fab-group{position:fixed;right:20px;bottom:90px;display:flex;flex-direction:column;gap:12px;z-index:100000}
-.fab{width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent,#25d366),var(--accent-2,#128c7e));color:#fff;text-decoration:none;font-size:22px;box-shadow:2px 2px 8px rgba(0,0,0,0.3)}
-.fab.whatsapp{background:#25d366}
-.fab.facebook{background:#1877f2;color:#fff}
-.fab.instagram{background:#e4405f;color:#fff}
-.fab.imichat{background:#005cde;color:#fff;font-size:18px}
+.fab{width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#000;text-decoration:none;font-size:20px;  box-shadow: 2px 2px 8px rgba(0,0,0,0.3)}
+.fab.whatsapp{background:transparent}
+.fab.imichat {background: #005cde;color: #fff;font-size: 18px}
 
-/* SECTIONS */
 .section{padding:3rem 2rem;max-width:1100px;margin:auto;text-align:center}
 .grid-2,.grid-3{display:grid;gap:1.5rem}
 .grid-2{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .grid-3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
 .card{background:#fff;padding:1.5rem;border-radius:12px;box-shadow:0 4px 8px rgba(0,0,0,.05)}
 .card i{font-size:2rem;color:#2563eb;margin-bottom:.5rem}
 
-/* CONTACT */
 .contact form{display:flex;flex-direction:column;gap:1rem;max-width:500px;margin:auto}
 .contact input,.contact textarea{padding:.8rem;border-radius:8px;border:1px solid #ccc;font-size:1rem}
-.footer{text-align:center;padding:1rem;background:#f1f5f9;color:#555;margin-top:2rem;position:relative;bottom: 0;width: 100%;}
 
-/* DEPRECATED: estilos para chat modal (no hay HTML asociado) */
-/*
-.chat-modal{...}
-*/
+/* Footer corregido */
+.footer{
+  text-align:center;
+  padding:1rem;
+  background:#f1f5f9;
+  color:#555;
+  margin-top:2rem;
+  position:relative;
+  bottom:0;
+  width:100%;
+}
 
-/* INCOMING CALL */
+.chat-modal{position:fixed;right:1rem;bottom:1rem;width:300px;max-width:90%;background:#fff;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.2);display:none;flex-direction:column;overflow:hidden}
+.chat-modal.open{display:flex}
+.chat-header{padding:.8rem;background:#2563eb;color:#fff;font-weight:600}
+.chat-messages{padding:.8rem;height:200px;overflow-y:auto;font-size:.9rem}
+
+.msg{margin-bottom:.5rem}
+.msg .bubble{padding:.6rem .8rem;border-radius:10px;display:inline-block;max-width:80%}
+.msg.me .bubble{background:#2563eb;color:#fff;align-self:flex-end}
+.msg.them .bubble{background:#e5e7eb;color:#111}
+
+.chat-input{display:flex;padding:.5rem;border-top:1px solid #ddd}
+.chat-input input{flex:1;padding:.5rem;border-radius:8px;border:1px solid #ccc}
+.chat-input button{margin-left:.5rem;padding:.5rem 1rem;border:0;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer}
+@media(max-width:600px){.hero h2{font-size:1.5rem}}
+
+/* Incoming Call Notification Styles */
 .incoming-call-notification {
     background-color: #000;
     color: white;
@@ -69,33 +89,58 @@ main {
     border-radius: 5px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     position: fixed;
-    top: 130px;
+    top: 130px; /* Start hidden above the screen */
     right: -330px;
-    min-width: 320px;
-    max-width: 100%;
-    opacity: 0;
+    min-width: 320px; /* Set a minimum width */
+    max-width: 100%; /* Ensure it doesn't exceed the screen width */
+	opacity: 0;
     transition: right 0.25s ease-in-out, opacity 0.5s ease-in-out;
-    z-index: 9998;
+    z-index: 9998; /* Ensure it floats above other content */
 }
-.incoming-call-notification .notifier-a{display:flex;align-items:center;justify-content:start}
-.incoming-call-notification.show-notification {opacity:1;right:50px}
-#secondCallNotification.incoming-call-notification.show-notification{opacity:1;right:135px;min-width:150px}
-.incoming-call-notification.show-notification.switch-look {right:300px}
-.incoming-call-notification.timestate .call-actions .attend-call-btn {display:none}
-.incoming-call-notification .call-time {display:none}
-.incoming-call-notification.timestate .call-time{margin:7.5px;display:block}
-.incoming-call-notification.timestate .call-time span#hold-status{display:none}
-.incoming-call-notification.timestate .call-time.on-hold span#hold-status{display:block;color:orange}
-.incoming-call-notification.timestate .call-time.on-hold span#timer{display:none}
-.incoming-call-notification.timestate .call-time span.blink_me{animation:blinker 2s linear infinite}
-@keyframes blinker {50%{opacity:0}}
-.incoming-call-notification .call-avatar{width:40px;height:40px;border-radius:50%;background:#eee;margin:7.5px}
-.incoming-call-notification .call-info{width:150px;text-align:left;margin:7.5px}
-.incoming-call-notification .call-time{width:80px;text-align:center}
-.incoming-call-notification .call-actions{margin:7.5px;text-align:center}
-.incoming-call-notification .call-actions button{width:40px;height:40px;background:transparent;border:none;cursor:pointer}
-.incoming-call-notification .cut-call-btn i{color:red}
-.incoming-call-notification .mute i{color:white}
-.incoming-call-notification .tooltip-trigger{position:relative;cursor:pointer}
 
+.incoming-call-notification .notifier-a{
+	display: flex;
+	align-items: center;
+	justify-content: start;
+}
 
+.incoming-call-notification.show-notification {
+  opacity: 1;
+  right: 50px;
+}
+
+#secondCallNotification.incoming-call-notification.show-notification{
+	opacity: 1;
+    right: 135px;
+    min-width: 150px;
+}
+
+.incoming-call-notification.show-notification.switch-look {
+	right: 300px;
+}
+
+.incoming-call-notification.timestate .call-actions .attend-call-btn {
+  display: none;
+}
+
+.incoming-call-notification .call-time {
+  display: none;
+}
+
+.incoming-call-notification.timestate .call-time{
+	margin: 7.5px;
+	display: block;
+}
+
+.incoming-call-notification.timestate .call-time span#hold-status{
+	display: none;
+}
+
+.incoming-call-notification.timestate .call-time.on-hold span#hold-status{
+	display: block;
+	color: orange;
+}
+
+.incoming-call-notification.timestate .call-time.on-hold span#timer{
+	display: none;
+}
