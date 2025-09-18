@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/a2e0d6c6e0.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/webex/umd/webex.min.js"></script>
+  <script src='https://unpkg.com/webex@3.5.0-next.25/umd/calling.min.js'></script>
 </head>
   
 <body>
@@ -30,10 +31,17 @@
       <h2>Comunicación sin límites, experiencia sin igual</h2>
       <p>Transforma tu negocio con una plataforma de colaboración y contact center en la nube.</p>
       <div class="cta-stack">
-        <a class="btn phone" href="tel:+576046098731"><i class="fas fa-phone"></i> <img src="images/llamada.png" alt="Llamar" class="icono"> Contactenos</a>
-        <a class="btn email" href="mailto:clientes.support@pocbancolombia.ucteamsidc.tigo.com.co"><i class="fas fa-envelope"></i> <img src="images/email.png" alt="Email" class="icono"> Correo</a>
-        <a class="btn clic2call" href="#" id="btnCall" onclick="initiateCall()"> <img src="images/call.png" alt="Llamada Web" class="icono"> Hablar con Agente</a>
-        <a class="btn chat"><i class="fas fa-phone"></i> <img src="images/llamada.png" alt="Llamar" class="icono"> Contactenos</a><div id="webex-dialer"></div>
+        <a class="btn phone" href="tel:+576046098731"><i class="fas fa-phone"></i> 
+          <img src="images/llamada.png" alt="Llamar" class="icono"> Contactenos</a>
+        <a class="btn email" href="mailto:clientes.support@pocbancolombia.ucteamsidc.tigo.com.co"><i class="fas fa-envelope"></i> 
+          <img src="images/email.png" alt="Email" class="icono"> Correo</a>
+        <a class="btn clic2call" href="#" id="btnCall" onclick="initiateCall()"> 
+          <img src="images/call.png" alt="Llamada Web" class="icono"> Hablar con Agente</a>
+
+        <!-- DEPRECATED: Este botón chat duplicaba la función del widget flotante -->
+        <!-- <a class="btn chat"><i class="fas fa-phone"></i> 
+          <img src="images/llamada.png" alt="Llamar" class="icono"> Contactenos</a>
+          <div id="webex-dialer"></div> -->
       </div>
     </section>
     
@@ -56,96 +64,110 @@
       </div>
     </section>
 
+    <section id="contact" class="section contact">
+      <h2>Contacto & Solicitar Demo</h2>
+      <p class="lead">Rellena el formulario o usa los botones flotantes para contactarnos inmediatamente.</p>
 
-      <section id="contact" class="section contact">
-        <h2>Contacto & Solicitar Demo</h2>
-        <p class="lead">Rellena el formulario o usa los botones flotantes para contactarnos inmediatamente.</p>
+      <form id="contactForm" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <input name="name" placeholder="Nombre completo" required />
+        <input name="company" placeholder="Compañía" />
+        <input name="email" type="email" placeholder="Correo electrónico" required />
+        <input name="phone" placeholder="Teléfono" />
+        <textarea name="message" placeholder="Cuéntanos tu proyecto o necesidades" rows="4" style="grid-column:1/3;background:transparent"></textarea>
+        <button type="submit" class="btn primary">Solicitar demo</button>
+      </form>
 
-        <form id="contactForm" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <input name="name" placeholder="Nombre completo" required />
-          <input name="company" placeholder="Compañía" />
-          <input name="email" type="email" placeholder="Correo electrónico" required />
-          <input name="phone" placeholder="Teléfono" />
-          <textarea name="message" placeholder="Cuéntanos tu proyecto o necesidades" rows="4" style="grid-column:1/3;background:transparent"></textarea>
-          <button type="submit" class="btn primary">Solicitar demo</button>
-        </form>
+      <p style="margin-top:10px;color:var(--muted)">
+        O contacta directamente: 
+        <a href="mailto:clientes.support@pocbancolombia.ucteamsidc.tigo.com.co">clientes.support@pocbancolombia.ucteamsidc.tigo.com.co</a> · 
+        <a href="tel:+576046098731">+57 604 609 8731</a>
+      </p>
+    </section>
 
-        <p style="margin-top:10px;color:var(--muted)">O contacta directamente: <a href="mailto:clientes.support@pocbancolombia.ucteamsidc.tigo.com.co">clientes.support@pocbancolombia.ucteamsidc.tigo.com.co</a> · <a href="tel:+576046098731">+57 604 609 8731</a></p>
-      </section>
-
-  <!-- jscript web dialer   
-
+    <!-- DEPRECATED: Script antiguo web dialer no usado -->
+    <!--
     <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const callBtn = document.getElementById('btnCall');
-    const dialer = document.getElementById('webex-dialer');
-    let isDialerVisible = false;
+      document.addEventListener('DOMContentLoaded', function () {
+        const callBtn = document.getElementById('btnCall');
+        const dialer = document.getElementById('webex-dialer');
+        let isDialerVisible = false;
+        callBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          isDialerVisible = !isDialerVisible;
+          dialer.style.display = isDialerVisible ? 'block' : 'none';
+        });
+        webexCallWidget.init({
+          elementId: 'webex-dialer',
+          orgId: '...',
+          queueId: '...',
+          entryPoint: '...',
+          locale: 'es',
+          theme: 'light'
+        });
+      });
+    </script>
+    -->
 
-    callBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      isDialerVisible = !isDialerVisible;
-      dialer.style.display = isDialerVisible ? 'block' : 'none';
-    });
+    <!-- Call Notification -->
+    <div class="incoming-call-notification timestate" id="callNotification">
+      <div class="notifier-a">
+        <div class="call-avatar"></div>
+        <div class="call-info">
+          <div class="callee-name">Customer Care</div>
+        </div>
+        <div class="call-time" id="call-time">
+          <span id="timer">00:01</span>
+          <span class="blink_me" id="hold-status">On Hold</span>
+        </div>
+        <div class="call-actions">
+          <button class="cut-call-btn" onclick="disconnectCall()"><i class="fa fa-times"></i></button>
+        </div>
+      </div>
+      <div class="notifier-a-controls hide-controls" id="notifier-a-controls">
+        <button class="mute tooltip-trigger" data-tooltip="Mute" onclick="toggleMute()"><i class="fa fa-microphone-slash"></i></button>
+      </div>
+    </div>
 
-    // Inicializa el widget solo una vez
-    webexCallWidget.init({
-      elementId: 'webex-dialer',
-      orgId: 'e8a35262-0627-40d1-9b31-82b6b9af3653',
-      queueId: '9eeb05c1-45c4-4711-83a5-33dc7b9aa693',
-      entryPoint: '89a4ba77-f787-47b5-ad0a-2bea58cbb5aa',
-      locale: 'es',
-      theme: 'light'
-    });
-  });
-</script> -->
-
-
-    		<!-- Call Notification -->
-		<div class="incoming-call-notification timestate" id="callNotification">
-			<div class="notifier-a">
-				<div class="call-avatar"></div>
-				<div class="call-info">
-					<div class="callee-name">Customer Care</div>
-				</div>
-				<div class="call-time" id="call-time">
-					<span id="timer">00:01</span>
-					<span class="blink_me" id="hold-status">On Hold</span>
-				</div>
-				<div class="call-actions">
-					<button class="cut-call-btn" onclick="disconnectCall()"><i class="fa fa-times"></i></button>
-				</div>
-			</div>
-			<div class="notifier-a-controls hide-controls" id="notifier-a-controls">
-				<button class="mute tooltip-trigger" data-tooltip="Mute" onclick="toggleMute()"><i class="fa fa-microphone-slash"></i></button>
-			</div>
-		</div>
-
-		<audio id="customer-remote-audio" autoplay></audio>
+    <audio id="customer-remote-audio" autoplay></audio>
+  </main>
     
   <!-- Botones flotantes -->
   <div class="fab-group">
-      <!-- Widget IMI Chat Webex -->
-      <div id="divicw" data-bind="AA45EC3E-8457-45FD-93B2-7E5C6DE941B6" data-org=""></div><script>var i={t:function(t){var e="https://media.imi.chat/widget/js/imichatinit.js";try{var o=new XMLHttpRequest;o.onreadystatechange=function(){if(this.readyState==4){var t=document.getElementById("divicw");if(this.status==0){i.o(t);return}var e=document.createElement("script");e.innerHTML=this.responseText;t.parentNode.insertBefore(e,t.nextSibling)}};o.open("GET",e,true);o.send()}catch(s){console.error(s)}},o:function(t){t.insertAdjacentHTML("afterend",'<iframe id="tls_al_frm" frameborder="0" style="overflow: hidden;height: 208px;width: 394px;position: fixed;display: block;right: 48px;bottom: 12px;z-index: 99999; display:none;"></iframe>');var e=document.getElementById("tls_al_frm");var o=e.contentWindow||(e.contentDocument.document||e.contentDocument);o.document.open();o.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Untitled Document</title><style>body{font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;color: #99a0b0;font-size: 14px;}.popover__content{background-color: #fbfbfe; padding: 1.5rem; border-radius: 5px; width: 300px; box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);position: relative;}.popover__message{font-weight: 600;color:#56627c;font-size: 16px;}.pull-left{float:left;}.clearfix{clear: both;}.hdr-txt{width: 218px; margin-top: 3px;}.para-txt a{text-decoration: none;color: #005cde;}.close-btn{position: absolute;right:15px;top:15px;}.close-btn a{text-decoration: none;font-weight: 400; color: #56627c; font-size: 16px;}</style></head><body><div class="popover__content"><div class="close-btn"><a href="#" onclick="closeTLSAlert();">X</a></div><div class="popover__message"><div class="pull-left hdr-txt">This browser version is not supported on LiveChat.</div></div><div class="clearfix"></div><p class="para-txt">Please update your browser to the latest version and re-open the website to access the widget. </p></div><script>function closeTLSAlert(){window.parent.postMessage({key: "close_tls_alert",value: "close_tls_alert",action: "close_tls_alert"}, "*");}<\/script></body></html>');o.document.close();e.style.display="block";window.addEventListener("message",function(t){if(t.data.action=="close_tls_alert"){i.s()}})},s:function(){var t=document.getElementById("tls_al_frm");t.remove()}};i.t(function(t){});</script>
+    <!-- Widget IMI Chat Webex -->
+    <div id="divicw" data-bind="AA45EC3E-8457-45FD-93B2-7E5C6DE941B6" data-org=""></div>
+    <script>
+      var i={t:function(t){var e="https://media.imi.chat/widget/js/imichatinit.js";try{var o=new XMLHttpRequest;o.onreadystatechange=function(){if(this.readyState==4){var t=document.getElementById("divicw");if(this.status==0){i.o(t);return}var e=document.createElement("script");e.innerHTML=this.responseText;t.parentNode.insertBefore(e,t.nextSibling)}};o.open("GET",e,true);o.send()}catch(s){console.error(s)}},o:function(t){t.insertAdjacentHTML("afterend",'<iframe id="tls_al_frm" frameborder="0" style="overflow: hidden;height: 208px;width: 394px;position: fixed;display: block;right: 48px;bottom: 12px;z-index: 99999; display:none;"></iframe>');var e=document.getElementById("tls_al_frm");var o=e.contentWindow||(e.contentDocument.document||e.contentDocument);o.document.open();o.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Untitled Document</title><style>body{font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;color: #99a0b0;font-size: 14px;}.popover__content{background-color: #fbfbfe; padding: 1.5rem; border-radius: 5px; width: 300px; box-shadow: 0 2px 5px 0 rgba(0,0,0,0.26);position: relative;}.popover__message{font-weight: 600;color:#56627c;font-size: 16px;}.pull-left{float:left;}.clearfix{clear: both;}.hdr-txt{width: 218px; margin-top: 3px;}.para-txt a{text-decoration: none;color: #005cde;}.close-btn{position: absolute;right:15px;top:15px;}.close-btn a{text-decoration: none;font-weight: 400; color: #56627c; font-size: 16px;}</style></head><body><div class="popover__content"><div class="close-btn"><a href="#" onclick="closeTLSAlert();">X</a></div><div class="popover__message"><div class="pull-left hdr-txt">This browser version is not supported on LiveChat.</div></div><div class="clearfix"></div><p class="para-txt">Please update your browser to the latest version and re-open the website to access the widget. </p></div><script>function closeTLSAlert(){window.parent.postMessage({key: "close_tls_alert",value: "close_tls_alert",action: "close_tls_alert"}, "*");}<\/script></body></html>');o.document.close();e.style.display="block";window.addEventListener("message",function(t){if(t.data.action=="close_tls_alert"){i.s()}})},s:function(){var t=document.getElementById("tls_al_frm");t.remove()}};i.t(function(t){});
+    </script>
+
     <!-- Botón flotante WhatsApp -->
-    <a class="fab whatsapp" href="https://wa.me/14082568243?text=Hola,%20deseo%20más%20información%20sobre%20Webex" target="_blank" aria-label="WhatsApp"> <i class="fab fa-whatsapp"></i><img src="images/whatsapp.png" alt="whatsapp" class="fab whatsapp"></a>
-  </div> 
+    <a class="fab whatsapp" href="https://wa.me/14082568243?text=Hola,%20deseo%20más%20información%20sobre%20Webex" target="_blank" aria-label="WhatsApp">
+      <i class="fab fa-whatsapp"></i>
+      <img src="images/whatsapp.png" alt="whatsapp" class="fab whatsapp">
+    </a>
 
+    <!-- Botón flotante Facebook 
+    <a class="fab facebook" href="https://m.me/TU_PAGINA" target="_blank" aria-label="Facebook">
+      <i class="fab fa-facebook-messenger"></i>
+    </a>
 
-	<script src="https://unpkg.com/webex/umd/webex.min.js"></script>
-	<script src='https://unpkg.com/webex@3.5.0-next.25/umd/calling.min.js'></script>
-	<script type="text/javascript" src="./js/timer.js"></script>
-	<script type="text/javascript" src="./js/app.js"></script>
-	<script type="text/javascript" src="./sdk/calling-sdk.js"></script>
-	<script type="text/javascript">
-		window.onload = () => {
-			initCalling('customer');
-		}
-	</script>
+    <!-- Botón flotante Instagram 
+    <a class="fab instagram" href="https://instagram.com/TU_USUARIO" target="_blank" aria-label="Instagram">
+      <i class="fab fa-instagram"></i>
+    </a>
+  </div> -->
 
-    
+  <script type="text/javascript" src="./js/timer.js"></script>
+  <script type="text/javascript" src="./js/app.js"></script>
+  <script type="text/javascript" src="./sdk/calling-sdk.js"></script>
+  <script type="text/javascript" src="./js/call-hooks.js"></script>
+  <script>
+    window.onload = () => {
+      initCalling('customer');
+    }
+  </script>
+
   <footer class="footer">
     <p>© <span id="copyYear"></span> TIGO</p>
   </footer>
-
 </body>
 </html>
