@@ -1,37 +1,91 @@
-document.getElementById('copyYear').textContent = new Date().getFullYear();
+// app.js
+// Control principal de la llamada Webex
 
-// Contact form
-const contactForm = document.getElementById('contactForm');
-contactForm.addEventListener('submit', e => {
-  e.preventDefault();
-  alert('Gracias por tu mensaje. Un asesor se comunicará pronto.');
-  contactForm.reset();
-});
+let webexInstance;
+let activeCall;
+let isMuted = false;
 
-// Live chat
-const chatModal = document.getElementById('chatModal');
-const openChatBtn = document.getElementById('open-chat');
-const chatInput = document.getElementById('chatInput');
-const chatMessages = document.getElementById('chatMessages');
-const sendChat = document.getElementById('sendChat');
+async function initCalling(userType) {
+  try {
+    // Inicialización de Webex SDK
+    webexInstance = window.webex = Webex.init({
+      credentials: {
+        access_token: "REEMPLAZAR_CON_TOKEN_DEVELOPER" // ⚠️ Cambia aquí tu token temporal
+      }
+    });
 
-openChatBtn.addEventListener('click', ()=>chatModal.classList.toggle('open'));
-
-function appendMessage(text, who='me'){
-  const div = document.createElement('div');
-  div.className = 'msg ' + who;
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.textContent = text;
-  div.appendChild(bubble);
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+    console.log("Webex initialized for", userType);
+  } catch (err) {
+    console.error("Error initializing Webex:", err);
+  }
 }
 
-sendChat.addEventListener('click', ()=>{
-  const v = chatInput.value.trim();
-  if(!v) return;
-  appendMessage(v,'me');
-  chatInput.value='';
-  setTimeout(()=>appendMessage('Gracias por tu mensaje, un asesor responderá pronto.','them'),1000);
-});
+async function initiateCall() {
+  if (!webexInstance) {
+    alert("Webex no está inicializado.");
+    return;
+  }
+
+  try {
+    const destination = "8737"; // Extensión configurada en Click-to-Call
+    activeCall = await webexInstance.calls.create(destination);
+
+    // Escuchar cambios en la llamada
+    activeCall.on("connected", () => {
+      console.log("Llamada conectada");
+      showNotification();
+      startTimer();
+    });
+
+    activeCall.on("disconnected", () => {
+      console.log("Llamada terminada");
+      hideNotification();
+      stopTimer();
+    });
+
+    activeCall.on("error", (err) => {
+      console.error("Error en llamada:", err);
+    });
+  } catch (err) {
+    console.error("No se pudo iniciar la llamada:", err);
+  }
+}
+
+function disconnectCall() {
+  if (activeCall) {
+    activeCall.hangup();
+    activeCall = null;
+    hideNotification();
+    stopTimer();
+  }
+}
+
+function toggleMute() {
+  if (!activeCall) return;
+
+  isMuted = !isMuted;
+  activeCall.isMuted = isMuted;
+
+  const muteBtn = document.querySelector(".mute i");
+  if (isMuted) {
+    muteBtn.classList.remove("fa-microphone-slash");
+    muteBtn.classList.add("fa-microphone");
+  } else {
+    muteBtn.classList.remove("fa-microphone");
+    muteBtn.classList.add("fa-microphone-slash");
+  }
+}
+
+// Mostrar/ocultar notificación de llamada
+function showNotification() {
+  const notif = document.getElementById("callNotification");
+  notif.classList.add("show-notification");
+}
+function hideNotification() {
+  const notif = document.getElementById("callNotification");
+  notif.classList.remove("show-notification");
+}
+
+// DEPRECATED: funciones para segundo canal de llamada (no implementado)
+// function initiateSecondCall() { ... }
+
