@@ -1,6 +1,15 @@
 /* RESET */
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;line-height:1.6;background:#f9fafb;color:#111111}
+html, body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
 
 
 /* HEADER */
