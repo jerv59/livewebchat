@@ -1,13 +1,29 @@
 {
   "name": "click-to-call-backend",
   "version": "1.0.0",
+  "description": "Backend Node.js para Click-to-Call con Webex Contact Center (Callback hacia Entry Point)",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "node-fetch": "^3.3.2"
-  }
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
+  "keywords": [
+    "webex",
+    "click-to-call",
+    "callback",
+    "express",
+    "backend"
+  ],
 }
