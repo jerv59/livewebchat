@@ -1,69 +1,104 @@
-// server/server.js
-require('dotenv').config();
-const express = require('express');
-const fetch = require('node-fetch');
-const cors = require('cors');
+// server.js
+import express from 'express';
+import fetch from 'node-fetch';
 
 const app = express();
 app.use(express.json());
 
-// Cambia el origin por el de tu página Pages.dev para mayor seguridad
-app.use(cors({
-  origin: ['https://betaucaastigo.pages.dev', 'http://localhost:3000'] // ajustar según necesites
-}));
+// ===== CONFIG =====
+// variables de entorno para Backend
+// Render, Railway, Vercel, etc.
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const WEBEX_API = 'https://webexapis.com/v1';
 
-const SERVICE_APP_TOKEN = process.env.SERVICE_APP_TOKEN; // sin "Bearer"
+// Cache del token en memoria
+let serviceAppToken = null;
+let tokenExpiry = 0;
 
-if (!SERVICE_APP_TOKEN) {
-  console.error('ERROR: set SERVICE_APP_TOKEN in environment (no "Bearer " prefix)');
-  process.exit(1);
+// === Función para obtener o renovar el Service App Token ===
+async function getServiceAppToken() {
+  const now = Math.floor(Date.now() / 1000);
+
+  // Valida si el token es válido
+  if (serviceAppToken && now < tokenExpiry - 60) {
+    return serviceAppToken;
+  }
+
+  console.log('Solicitando nuevo Service App Token a Webex...');
+
+  const r = await fetch(`${WEBEX_API}/access_token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      scope: 'spark-admin:telephony_config_read spark-admin:telephony_config_write spark-admin:telephony_config_call:read spark-admin:telephony_config_call:write'
+    })
+  });
+
+  const data = await r.json();
+
+  if (!data.access_token) {
+    console.error('Error obteniendo Service App Token:', data);
+    throw new Error('No se pudo obtener Service App Token');
+  }
+
+  serviceAppToken = data.access_token;
+  tokenExpiry = now + data.expires_in; // normalmente 86400 seg (24h)
+
+  return serviceAppToken;
 }
 
-// Endpoint: devuelve token de guest (simplificado para cliente)
+// === Endpoint para Guest Token ===
 app.get('/api/guest-token', async (req, res) => {
   try {
-    const resp = await fetch('https://webexapis.com/v1/guests/token', {
+    const token = await getServiceAppToken();
+
+    const r = await fetch(`${WEBEX_API}/guests/token`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SERVICE_APP_TOKEN}`,
-        'Content-Type': 'application/json'
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        subject: `guest-${Date.now()}`,
-        displayName: 'Visitante Web'
-      })
+      body: JSON.stringify({ displayName: "Visitante Web" })
     });
-    const data = await resp.json();
-    // Normalizamos la respuesta para el frontend
-    return res.json({ accessToken: data.access_token || data.accessToken || data.accessTokenValue || data });
+
+    const data = await r.json();
+    res.json(data);
   } catch (err) {
-    console.error('guest-token error', err);
-    res.status(500).json({ error: err.message });
+    console.error('Error Guest Token:', err);
+    res.status(500).json({ error: 'Error obteniendo guest token' });
   }
 });
 
-// Endpoint: devuelve JWE call token para click-to-call
+// === Endpoint para JWE Token (Click-to-Call) ===
 app.post('/api/jwe-token', async (req, res) => {
   try {
-    const { calledNumber, guestName = 'Visitante Web' } = req.body;
-    if (!calledNumber) return res.status(400).json({ error: 'calledNumber required' });
+    const { calledNumber, guestName } = req.body;
+    const token = await getServiceAppToken();
 
-    const resp = await fetch('https://webexapis.com/v1/telephony/click2call/callToken', {
+    const r = await fetch(`${WEBEX_API}/telephony/config/clickToCall/token`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SERVICE_APP_TOKEN}`,
-        'Content-Type': 'application/json'
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ calledNumber, guestName })
+      body: JSON.stringify({
+        phoneNumber: calledNumber,
+        displayName: guestName || "Visitante Web"
+      })
     });
 
-    const data = await resp.json();
-    return res.json({ callToken: data.callToken || data.call_token || data.jwe || data });
+    const data = await r.json();
+    res.json(data);
   } catch (err) {
-    console.error('jwe-token error', err);
-    res.status(500).json({ error: err.message });
+    console.error('Error JWE Token:', err);
+    res.status(500).json({ error: 'Error obteniendo JWE token' });
   }
 });
 
+// === Start server ===
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`CTC server listening on ${PORT}`));
+app.listen(PORT, () => console.log(`Backend Webex corriendo en puerto ${PORT}`));
