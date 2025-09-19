@@ -1,91 +1,94 @@
-// app.js
-// Control principal de la llamada Webex
+// ==============================================
+// app.js - Click to Call con Webex Calling SDK
+// ==============================================
 
-let webexInstance;
-let activeCall;
-let isMuted = false;
-
-async function initCalling(userType) {
+// =======================
+// 🔹 Función: Obtener token dinámico desde backend en Render
+// =======================
+async function getToken() {
   try {
-    // Inicialización de Webex SDK
-    webexInstance = window.webex = Webex.init({
-      credentials: {
-        access_token: "REEMPLAZAR_CON_TOKEN_DEVELOPER" // ⚠️ Cambia aquí tu token temporal
-      }
-    });
-
-    console.log("Webex initialized for", userType);
+    const response = await fetch("https://click-to-call-backend.onrender.com/token");
+    const data = await response.json();
+    return data.access_token;
   } catch (err) {
-    console.error("Error initializing Webex:", err);
+    console.error("❌ Error obteniendo token:", err);
+    return null;
   }
 }
 
-async function initiateCall() {
-  if (!webexInstance) {
-    alert("Webex no está inicializado.");
+// =======================
+// 🔹 Inicializar Webex con token dinámico
+// =======================
+async function initCalling(userType) {
+  const token = await getToken();
+  if (!token) {
+    alert("⚠️ No se pudo obtener un token válido. Revisa el backend en Render.");
     return;
   }
 
-  try {
-    const destination = "8737"; // Extensión configurada en Click-to-Call
-    activeCall = await webexInstance.calls.create(destination);
+  // Inicializar SDK de Webex con token dinámico
+  window.webex = window.Webex.init({
+    credentials: {
+      access_token: token
+    }
+  });
 
-    // Escuchar cambios en la llamada
-    activeCall.on("connected", () => {
-      console.log("Llamada conectada");
-      showNotification();
-      startTimer();
-    });
-
-    activeCall.on("disconnected", () => {
-      console.log("Llamada terminada");
-      hideNotification();
-      stopTimer();
-    });
-
-    activeCall.on("error", (err) => {
-      console.error("Error en llamada:", err);
-    });
-  } catch (err) {
-    console.error("No se pudo iniciar la llamada:", err);
-  }
+  console.log(`✅ Webex Calling inicializado para ${userType}`);
 }
 
-function disconnectCall() {
-  if (activeCall) {
-    activeCall.hangup();
+// =======================
+// 🔹 Variables globales
+// =======================
+let activeCall = null;
+
+// =======================
+// 🔹 Función: Hacer llamada
+// =======================
+async function makeCall(destination) {
+  if (!window.webex) {
+    alert("⚠️ Webex no está inicializado todavía");
+    return;
+  }
+
+  // Inicia la llamada
+  activeCall = window.webex.phone.dial(destination);
+
+  // Eventos de la llamada
+  activeCall.on("connected", () => console.log("📞 Conectado con el agente"));
+  activeCall.on("disconnected", () => {
+    console.log("❌ Llamada finalizada");
     activeCall = null;
-    hideNotification();
-    stopTimer();
-  }
+  });
 }
 
-function toggleMute() {
-  if (!activeCall) return;
+// =======================
+// 🔹 Controles de la llamada
+// =======================
 
-  isMuted = !isMuted;
-  activeCall.isMuted = isMuted;
+// Botón HABLAR CON AGENTE
+document.getElementById("call-btn").addEventListener("click", async () => {
+  await initCalling("cliente");
 
-  const muteBtn = document.querySelector(".mute i");
-  if (isMuted) {
-    muteBtn.classList.remove("fa-microphone-slash");
-    muteBtn.classList.add("fa-microphone");
+  // ⚠️ Cambia el destino SIP según tu configuración en Webex Calling
+  makeCall("sip:agente@tuempresa.com");
+});
+
+// Botón MUTE
+document.getElementById("mute-btn").addEventListener("click", () => {
+  if (activeCall) {
+    activeCall.mute().then(() => console.log("🔇 Micrófono silenciado"));
   } else {
-    muteBtn.classList.remove("fa-microphone");
-    muteBtn.classList.add("fa-microphone-slash");
+    console.warn("⚠️ No hay llamada activa para silenciar");
   }
-}
+});
 
-// Mostrar/ocultar notificación de llamada
-function showNotification() {
-  const notif = document.getElementById("callNotification");
-  notif.classList.add("show-notification");
-}
-function hideNotification() {
-  const notif = document.getElementById("callNotification");
-  notif.classList.remove("show-notification");
-}
-
-// DEPRECATED: funciones para segundo canal de llamada (no implementado)
-// function initiateSecondCall() { ... }
+// Botón COLGAR
+document.getElementById("hangup-btn").addEventListener("click", () => {
+  if (activeCall) {
+    activeCall.hangup().then(() => console.log("📴 Llamada colgada"));
+    activeCall = null;
+  } else {
+    console.warn("⚠️ No hay llamada activa para colgar");
+  }
+});
 
