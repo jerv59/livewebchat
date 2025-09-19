@@ -1,8 +1,11 @@
-// =======================================
-// server.js - Backend para Click to Call
-// =======================================
+// server.js
+// Backend para "Te llamamos" (Callback) -> Webex Contact Center
+// ------------------------------------------------------------
+// Nota importante:
+// - La sección activa (más abajo) genera token con client_credentials (autorenovación),
+//   y crea llamadas hacia un Entry Point de Webex Contact Center.
+// ------------------------------------------------------------
 
-// 🔹 Dependencias
 import express from "express";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
@@ -11,116 +14,190 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Endpoint para generar la llamada de callback
-app.post("/callback-call", async (req, res) => {
-  const { phoneNumber } = req.body;
+// ------------------------------------------------------------------
+// ================== CÓDIGO PREVIO (COMENTADO) =======================
+// ------------------------------------------------------------------
+// Si necesitas restaurar alguna de estas versiones anteriores,
+// copia y pega el bloque que necesites y descomenta.
+// ------------------------------------------------------------------
 
-  if (!phoneNumber) {
-    return res.status(400).json({ error: "Número no válido" });
-  }
+/*
+-------------------- Versión anterior A (ejemplo de guest/jwe endpoints) --------------------
 
-  try {
-    const response = await fetch("https://webexapis.com/v1/telephony/calls", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.SERVICE_APP_TOKEN}`
-      },
-      body: JSON.stringify({
-        destination: phoneNumber,
-        targetUserId: process.env.AGENT_USER_ID // Webex User ID del agente
-      })
-    });
+import express from 'express';
+import fetch from 'node-fetch';
+const app = express();
+app.use(express.json());
 
-    const data = await response.json();
-    if (response.ok) {
-      res.json({ success: true, call: data });
-    } else {
-      res.status(400).json({ error: data });
-    }
-  } catch (err) {
-    console.error("Error al iniciar llamada:", err);
-    res.status(500).json({ error: "Fallo al iniciar la llamada" });
-  }
+const SERVICE_APP_TOKEN = process.env.SERVICE_APP_TOKEN; // (versión que usaba token fijo)
+
+app.get('/api/guest-token', async (req, res) => {
+  const resp = await fetch('https://webexapis.com/v1/guests/token', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SERVICE_APP_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ subject: `guest-${Date.now()}`, displayName: 'Visitante Web' })
+  });
+  const data = await resp.json();
+  res.json({ accessToken: data.access_token });
 });
 
-// 🔹 Inicialización de Express
-const app = express();
-const PORT = process.env.PORT || 10000;
+app.post('/api/jwe-token', async (req, res) => {
+  const { calledNumber, guestName } = req.body;
+  const r = await fetch('https://webexapis.com/v1/telephony/click2call/callToken', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${SERVICE_APP_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ calledNumber, guestName })
+  });
+  const d = await r.json();
+  res.json(d);
+});
+------------------------------------------------------------------------------------------
+*/
 
-// 🔹 Variables de entorno (Render → Dashboard → Environment)
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const WEBEX_AUTH_URL = "https://webexapis.com/v1/access_token";
+/*
+-------------------- Versión anterior B (simple) --------------------
+ // Endpoint que devolvía token fijo (no recomendado para producción)
+ app.get('/token', (req, res) => {
+   if (!process.env.SERVICE_APP_TOKEN) return res.status(500).send({error: 'No token'});
+   res.json({ access_token: process.env.SERVICE_APP_TOKEN });
+ });
+--------------------------------------------------------------------
+*/
 
-// 🔹 Cache de token en memoria
+// ------------------------------------------------------------------
+// ================== FIN CÓDIGO PREVIO (COMENTADO) ===================
+// ------------------------------------------------------------------
+
+
+// ------------------------ CONFIG / HELPERS -------------------------
+
+// URL por defecto para Webex Contact Center (región US1). Si tu tenant usa otra región,
+// define WXCC_API_URL en Variables de Entorno (Render) con la URL correcta.
+const WXCC_API_URL = process.env.WXCC_API_URL || "https://api.wxcc-us1.cisco.com/v1/telephony/calls";
+
+// Caché en memoria para el token de Service App
 let cachedToken = null;
-let tokenExpiry = null;
+let tokenExpiry = 0; // timestamp ms
 
-// =======================
-// 🔹 Función: Generar nuevo token con Client Credentials Flow
-// =======================
-async function generateServiceToken() {
+// Obtiene / renueva token via client_credentials y lo cachea
+async function getAccessToken() {
+  const now = Date.now();
+
+  // Si token existe y no expiró (con 60s de margen), reutilizar
+  if (cachedToken && tokenExpiry && now < tokenExpiry - 60000) {
+    return cachedToken;
+  }
+
+  // Preparar body para el request de token
+  const params = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: process.env.CLIENT_ID || "",
+    client_secret: process.env.CLIENT_SECRET || ""
+  });
+
+  // Si definiste ORG_ID, agrégalo (opcional en algunos tenants)
+  if (process.env.ORG_ID) {
+    params.append("org_id", process.env.ORG_ID);
+  }
+
   try {
-    const response = await fetch(WEBEX_AUTH_URL, {
+    const tokenResp = await fetch("https://webexapis.com/v1/access_token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "client_credentials",
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-        scope:
-          "spark-admin:telephony_config_read spark-admin:telephony_config_write spark-admin:telephony_config_call:read spark-admin:telephony_config_call:write"
-      })
+      body: params
     });
 
-    const data = await response.json();
+    const tokenData = await tokenResp.json();
 
-    if (data.access_token) {
-      cachedToken = data.access_token;
-      tokenExpiry = Date.now() + (data.expires_in - 60) * 1000; // 1 min de buffer
-      console.log("✅ Nuevo token generado");
-      return cachedToken;
-    } else {
-      console.error("❌ Error al generar token:", data);
-      throw new Error("No se pudo generar el token");
+    if (!tokenResp.ok || !tokenData.access_token) {
+      console.error("Error obteniendo access_token desde Webex:", tokenData);
+      throw new Error("No se pudo generar token (ver logs)");
     }
+
+    cachedToken = tokenData.access_token;
+    // tokenData.expires_in normalmente viene en segundos
+    tokenExpiry = Date.now() + ( (tokenData.expires_in || 3600) * 1000 );
+
+    console.log("✅ Nuevo Service App token obtenido. Expira en (ms):", tokenExpiry);
+    return cachedToken;
   } catch (err) {
-    console.error("❌ Error en generateServiceToken:", err);
+    console.error("getAccessToken error:", err);
     throw err;
   }
 }
 
-// =======================
-// 🔹 Función: Obtener token (usa cache si aún es válido)
-// =======================
-async function getServiceToken() {
-  if (cachedToken && tokenExpiry && Date.now() < tokenExpiry) {
-    return cachedToken;
-  }
-  return await generateServiceToken();
-}
+// ------------------------ RUTAS PÚBLICAS ---------------------------
 
-// =======================
-// 🔹 Endpoint público: /token
-// =======================
-app.get("/token", async (req, res) => {
-  try {
-    const token = await getServiceToken();
-    res.json({ access_token: token });
-  } catch (err) {
-    res.status(500).json({ error: "No se pudo generar el token" });
-  }
-});
-
-// 🔹 Endpoint de prueba
+// Ruta raíz - salud
 app.get("/", (req, res) => {
-  res.send("✅ Backend de Click-to-Call en Render está funcionando");
+  res.send("✅ Webex Callback Backend activo (Entry Point mode).");
 });
 
-// =======================
-// 🔹 Iniciar servidor
-// =======================
+// Endpoint para iniciar callback -> enruta a Entry Point de Webex Contact Center
+// Body: { "phoneNumber": "+57300...." }
+app.post("/callback-call", async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    if (!phoneNumber) return res.status(400).json({ error: "Debe enviar phoneNumber en body" });
+
+    // Verificar ENTRY_POINT_ID configurada
+    const entryPointId = process.env.ENTRY_POINT_ID;
+    if (!entryPointId) {
+      return res.status(500).json({ error: "ENTRY_POINT_ID no configurado en environment" });
+    }
+
+    // Obtener token (se renueva automáticamente si es necesario)
+    const accessToken = await getAccessToken();
+
+    // Construir llamada hacia Webex Contact Center
+    const callResp = await fetch(WXCC_API_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        destination: phoneNumber,
+        entryPointId: entryPointId
+      })
+    });
+
+    const callData = await callResp.json();
+
+    if (!callResp.ok) {
+      console.error("Error desde Webex CC al crear llamada:", callData);
+      return res.status(500).json({ error: "Webex CC error", details: callData });
+    }
+
+    // Respuesta exitosa
+    return res.json({
+      message: "📞 Llamada enviada al Entry Point",
+      call: callData
+    });
+
+  } catch (err) {
+    console.error("Error en /callback-call:", err);
+    return res.status(500).json({ error: "Error interno del servidor", details: err.message });
+  }
+});
+
+// (Opcional) Endpoint para depuración: devuelve token actual (no recomendado en producción)
+app.get("/debug/token", async (req, res) => {
+  try {
+    const token = await getAccessToken();
+    // Para seguridad no devolvemos todo el token en producción; este endpoint es solo para testing.
+    res.json({ ok: true, token_preview: token ? `${token.slice(0,40)}...` : null, expires_at: tokenExpiry });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// ------------------------ INICIAR SERVIDOR -------------------------
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor escuchando en puerto ${PORT}`);
+  console.log(`🚀 Backend escuchando en puerto ${PORT}`);
+  console.log("WXCC_API_URL =", WXCC_API_URL);
 });
