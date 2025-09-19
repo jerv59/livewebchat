@@ -5,6 +5,44 @@
 // 🔹 Dependencias
 import express from "express";
 import fetch from "node-fetch";
+import dotenv from "dotenv";
+
+dotenv.config();
+const app = express();
+app.use(express.json());
+
+// Endpoint para generar la llamada de callback
+app.post("/callback-call", async (req, res) => {
+  const { phoneNumber } = req.body;
+
+  if (!phoneNumber) {
+    return res.status(400).json({ error: "Número no válido" });
+  }
+
+  try {
+    const response = await fetch("https://webexapis.com/v1/telephony/calls", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.SERVICE_APP_TOKEN}`
+      },
+      body: JSON.stringify({
+        destination: phoneNumber,
+        targetUserId: process.env.AGENT_USER_ID // Webex User ID del agente
+      })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      res.json({ success: true, call: data });
+    } else {
+      res.status(400).json({ error: data });
+    }
+  } catch (err) {
+    console.error("Error al iniciar llamada:", err);
+    res.status(500).json({ error: "Fallo al iniciar la llamada" });
+  }
+});
 
 // 🔹 Inicialización de Express
 const app = express();
