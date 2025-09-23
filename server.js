@@ -13,9 +13,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Importar rutas
-import guestRoutes from "./routes/guest.js";
-import callbackRoutes from "./routes/callback.js";
-import tokenRoutes from "./routes/token.js";
+import guestRoutes from './backend/routes/guest.js';
+import callbackRoutes from './backend/routes/callback.js';
+import tokenRoutes from './backend/routes/token.js';
+
+
 
 const app = express();
 app.use(express.json());
