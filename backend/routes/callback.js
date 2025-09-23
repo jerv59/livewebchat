@@ -1,3 +1,4 @@
+// backend/routes/callback.js
 import express from "express";
 import fetch from "node-fetch";
 
@@ -12,39 +13,21 @@ router.post("/call", async (req, res) => {
       return res.status(400).json({ error: "Se requiere número de teléfono" });
     }
 
-    let accessToken = process.env.SERVICE_APP_TOKEN || null;
+    // 🔑 Pedir token dinámico desde /token/refresh
+    const tokenResp = await fetch(
+      `${process.env.BACKEND_BASE_URL}/token/refresh`
+    );
+    const tokenData = await tokenResp.json();
 
-    // 🔑 Obtener token dinámico desde /token/service si no está en env
-    if (!accessToken) {
-      try {
-        const backendBase =
-          process.env.SELF_URL ||
-          `http://localhost:${process.env.PORT || 10000}`;
-
-        const tokenResp = await fetch(`${backendBase}/token/service`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        const tokenJson = await tokenResp.json();
-        accessToken =
-          tokenJson.access_token ||
-          tokenJson.token ||
-          tokenJson.accessToken ||
-          null;
-
-        if (!accessToken) {
-          throw new Error("No se pudo extraer access_token de /token/service");
-        }
-      } catch (err) {
-        console.error("❌ Error al obtener token dinámico:", err);
-        return res
-          .status(500)
-          .json({ error: "No se pudo obtener token dinámico" });
-      }
+    if (!tokenData.access_token) {
+      return res
+        .status(400)
+        .json({ error: "No se pudo obtener token dinámico", details: tokenData });
     }
 
-    // 📡 Llamada a la API de Webex CC
+    const accessToken = tokenData.access_token;
+
+    // Enviar request a Webex CC
     const response = await fetch(`${process.env.WXCC_API_URL}/v1/callback`, {
       method: "POST",
       headers: {
@@ -59,10 +42,10 @@ router.post("/call", async (req, res) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
+    if (data.errors) {
       console.error("❌ Error en callback:", data);
       return res
-        .status(response.status)
+        .status(400)
         .json({ error: "No se pudo crear callback", details: data });
     }
 
