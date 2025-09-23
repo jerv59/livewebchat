@@ -16,6 +16,7 @@ dotenv.config();
 import guestRoutes from './backend/routes/guest.js';
 import callbackRoutes from './backend/routes/callback.js';
 import tokenRoutes from './backend/routes/token.js';
+import oauthRoutes from './backend/routes/oauth.js';
 
 
 
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use("/guest", guestRoutes);
 app.use("/callback", callbackRoutes);
 app.use("/token", tokenRoutes);
+app.use("/oauth", oauthRoutes);
 
 // Ruta de prueba
 app.get("/", (req, res) => {
