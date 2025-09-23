@@ -1,10 +1,15 @@
 // backend/routes/callback.js
 import express from "express";
 import fetch from "node-fetch";
+import { getAccessToken } from "../utils/tokenHelper.js";
 
 const router = express.Router();
 
-// Enviar una llamada Callback a Webex Contact Center
+/**
+ * POST /callback/call
+ * body: { phoneNumber: "+573001112233" }
+ * Envia un callback a la cola de Webex Contact Center
+ */
 router.post("/call", async (req, res) => {
   try {
     const { phoneNumber } = req.body;
@@ -13,21 +18,10 @@ router.post("/call", async (req, res) => {
       return res.status(400).json({ error: "Se requiere número de teléfono" });
     }
 
-    // 🔑 Pedir token dinámico desde /token/refresh
-    const tokenResp = await fetch(
-      `${process.env.BACKEND_BASE_URL}/token/refresh`
-    );
-    const tokenData = await tokenResp.json();
+    // 🔑 Obtener token dinámico directamente desde tokenHelper
+    const accessToken = await getAccessToken();
 
-    if (!tokenData.access_token) {
-      return res
-        .status(400)
-        .json({ error: "No se pudo obtener token dinámico", details: tokenData });
-    }
-
-    const accessToken = tokenData.access_token;
-
-    // Enviar request a Webex CC
+    // Llamada al endpoint de Webex CC
     const response = await fetch(`${process.env.WXCC_API_URL}/v1/callback`, {
       method: "POST",
       headers: {
@@ -42,16 +36,17 @@ router.post("/call", async (req, res) => {
 
     const data = await response.json();
 
-    if (data.errors) {
+    if (!response.ok || data.errors) {
       console.error("❌ Error en callback:", data);
-      return res
-        .status(400)
-        .json({ error: "No se pudo crear callback", details: data });
+      return res.status(400).json({
+        error: "No se pudo crear callback",
+        details: data,
+      });
     }
 
     res.json({ message: "📞 Callback solicitado con éxito", data });
   } catch (error) {
-    console.error("❌ Error en callback:", error);
+    console.error("❌ Error en callback:", error.message);
     res.status(500).json({ error: "Error interno", details: error.message });
   }
 });
