@@ -1,3 +1,4 @@
+//genera token de invitado
 import express from "express";
 import fetch from "node-fetch";
 
