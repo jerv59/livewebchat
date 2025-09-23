@@ -1,10 +1,4 @@
-// server.js
-// Backend para "Te llamamos" (Callback) -> Webex Contact Center
-// ------------------------------------------------------------
-// Nota importante:
-// - La sección activa (más abajo) genera token con client_credentials (autorenovación),
-//   y crea llamadas hacia un Entry Point de Webex Contact Center.
-// ------------------------------------------------------------
+// server.js es el archivo generado para conectar con Backend
 
 import express from "express";
 import fetch from "node-fetch";
@@ -14,67 +8,6 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// ------------------------------------------------------------------
-// ================== CÓDIGO PREVIO (COMENTADO) =======================
-// ------------------------------------------------------------------
-// Si necesitas restaurar alguna de estas versiones anteriores,
-// copia y pega el bloque que necesites y descomenta.
-// ------------------------------------------------------------------
-
-/*
--------------------- Versión anterior A (ejemplo de guest/jwe endpoints) --------------------
-
-import express from 'express';
-import fetch from 'node-fetch';
-const app = express();
-app.use(express.json());
-
-const SERVICE_APP_TOKEN = process.env.SERVICE_APP_TOKEN; // (versión que usaba token fijo)
-
-app.get('/api/guest-token', async (req, res) => {
-  const resp = await fetch('https://webexapis.com/v1/guests/token', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SERVICE_APP_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ subject: `guest-${Date.now()}`, displayName: 'Visitante Web' })
-  });
-  const data = await resp.json();
-  res.json({ accessToken: data.access_token });
-});
-
-app.post('/api/jwe-token', async (req, res) => {
-  const { calledNumber, guestName } = req.body;
-  const r = await fetch('https://webexapis.com/v1/telephony/click2call/callToken', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${SERVICE_APP_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ calledNumber, guestName })
-  });
-  const d = await r.json();
-  res.json(d);
-});
-------------------------------------------------------------------------------------------
-*/
-
-/*
--------------------- Versión anterior B (simple) --------------------
- // Endpoint que devolvía token fijo (no recomendado para producción)
- app.get('/token', (req, res) => {
-   if (!process.env.SERVICE_APP_TOKEN) return res.status(500).send({error: 'No token'});
-   res.json({ access_token: process.env.SERVICE_APP_TOKEN });
- });
---------------------------------------------------------------------
-*/
-
-// ------------------------------------------------------------------
-// ================== FIN CÓDIGO PREVIO (COMENTADO) ===================
-// ------------------------------------------------------------------
-
-
-// ------------------------ CONFIG / HELPERS -------------------------
-
-// URL por defecto para Webex Contact Center (región US1). Si tu tenant usa otra región,
 // define WXCC_API_URL en Variables de Entorno (Render) con la URL correcta.
 const WXCC_API_URL = process.env.WXCC_API_URL || "https://api.wxcc-us1.cisco.com/v1/telephony/calls";
 
