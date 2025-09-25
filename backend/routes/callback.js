@@ -18,7 +18,7 @@ router.post("/call", async (req, res) => {
       return res.status(400).json({ error: "Se requiere número de teléfono" });
     }
 
-    // 🔑 Obtener token dinámico directamente desde tokenHelper
+    // 🔑 Obtener token dinámico desde tokenHelper
     const accessToken = await getAccessToken();
 
     // Llamada al endpoint de Webex CC
@@ -30,16 +30,29 @@ router.post("/call", async (req, res) => {
       },
       body: JSON.stringify({
         destination: phoneNumber,
-        entryPointId: process.env.ENTRY_POINT_ID, // la cola de destino
+        entryPointId: process.env.ENTRY_POINT_ID, // Entry Point configurado
       }),
     });
 
-    const data = await response.json();
+    // ⚡ Capturar respuesta cruda
+    const rawText = await response.text();
+    console.log("📩 Respuesta WxCC:", rawText);
+
+    let data;
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (parseError) {
+      return res.status(500).json({
+        error: "Respuesta no es JSON válido",
+        raw: rawText,
+      });
+    }
 
     if (!response.ok || data.errors) {
       console.error("❌ Error en callback:", data);
-      return res.status(400).json({
+      return res.status(response.status).json({
         error: "No se pudo crear callback",
+        status: response.status,
         details: data,
       });
     }
