@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * POST /callback/call
  * body: { phoneNumber: "+573001112233" }
- * Envia un callback a la cola de Webex Contact Center
+ * Envía una solicitud de callback a Webex Contact Center (v2 API)
  */
 router.post("/call", async (req, res) => {
   try {
@@ -18,11 +18,17 @@ router.post("/call", async (req, res) => {
       return res.status(400).json({ error: "Se requiere número de teléfono" });
     }
 
-    // 🔑 Obtener token dinámico desde tokenHelper
+    // 🔑 Obtener token dinámico
     const accessToken = await getAccessToken();
 
-    // Llamada al endpoint de Webex CC
-    const response = await fetch(`${process.env.WXCC_API_URL}/v1/callback`, {
+    // 📡 Construir endpoint v2 con orgId y entryPointId
+    const orgId = process.env.WXCC_ORG_ID;
+    const entryPointId = process.env.ENTRY_POINT_ID;
+    const apiUrl = `${process.env.WXCC_API_URL}/organization/${orgId}/v2/entry-point/${entryPointId}/callback`;
+
+    console.log("➡️ Enviando callback a:", apiUrl);
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -30,26 +36,19 @@ router.post("/call", async (req, res) => {
       },
       body: JSON.stringify({
         destination: phoneNumber,
-        entryPointId: process.env.ENTRY_POINT_ID, // Entry Point configurado
       }),
     });
 
-    // ⚡ Capturar respuesta cruda
-    const rawText = await response.text();
-    console.log("📩 Respuesta WxCC:", rawText);
-
     let data;
     try {
-      data = rawText ? JSON.parse(rawText) : {};
-    } catch (parseError) {
-      return res.status(500).json({
-        error: "Respuesta no es JSON válido",
-        raw: rawText,
-      });
+      data = await response.json();
+    } catch {
+      data = {};
     }
 
+    console.log("📩 Respuesta WxCC:", data);
+
     if (!response.ok || data.errors) {
-      console.error("❌ Error en callback:", data);
       return res.status(response.status).json({
         error: "No se pudo crear callback",
         status: response.status,
@@ -57,7 +56,10 @@ router.post("/call", async (req, res) => {
       });
     }
 
-    res.json({ message: "📞 Callback solicitado con éxito", data });
+    res.json({
+      message: "📞 Callback solicitado con éxito",
+      data,
+    });
   } catch (error) {
     console.error("❌ Error en callback:", error.message);
     res.status(500).json({ error: "Error interno", details: error.message });
