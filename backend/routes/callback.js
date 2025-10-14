@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * POST /callback/call
  * body: { phoneNumber: "+573001112233" }
- * Envía una solicitud de callback a Webex Contact Center (v2 API)
+ * Envía una solicitud de callback a Webex Contact Center (v1 API)
  */
 router.post("/call", async (req, res) => {
   try {
@@ -18,35 +18,40 @@ router.post("/call", async (req, res) => {
       return res.status(400).json({ error: "Se requiere número de teléfono" });
     }
 
-    // 🔑 Obtener token dinámico
+    // 🔑 Obtener token dinámico (desde tokenHelper.js)
     const accessToken = await getAccessToken();
 
-    // 📡 Construir endpoint v2 con orgId y entryPointId
+    // 🧩 Variables de entorno
     const orgId = process.env.WXCC_ORG_ID;
     const entryPointId = process.env.ENTRY_POINT_ID;
-    const apiUrl = `${process.env.WXCC_API_URL}/organization/${orgId}/v2/entry-point/${entryPointId}/callback`;
 
-    console.log("➡️ Enviando callback a:", apiUrl);
+    // 🛰️ Endpoint correcto para crear Callback
+    const apiUrl = `${process.env.WXCC_API_URL}/organization/${orgId}/entry-point/${entryPointId}/callback`;
 
+    console.log("➡️ Enviando solicitud de Callback a:", apiUrl);
+
+    // 📡 Enviar solicitud a la API de Webex Contact Center
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         destination: phoneNumber,
       }),
     });
 
-    let data;
+    // Intentar parsear la respuesta
+    let data = {};
     try {
       data = await response.json();
-    } catch {
-      data = {};
+    } catch (parseError) {
+      console.warn("⚠️ No se pudo parsear la respuesta JSON:", parseError.message);
     }
 
-    console.log("📩 Respuesta WxCC:", data);
+    console.log("📩 Respuesta WxCC:", response.status, data);
 
     if (!response.ok || data.errors) {
       return res.status(response.status).json({
@@ -56,6 +61,7 @@ router.post("/call", async (req, res) => {
       });
     }
 
+    // ✅ Callback creado exitosamente
     res.json({
       message: "📞 Callback solicitado con éxito",
       data,
