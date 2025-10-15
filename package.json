@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Backend Node.js para Click-to-Call con Webex Contact Center (Callback hacia Entry Point)",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
