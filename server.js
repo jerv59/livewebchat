@@ -1,40 +1,48 @@
-// Punto de entrada principal para Backend Render
+// 🚀 Backend principal para Webex WebCallback en Render
 
-const express = require("express");
-const dotenv = require("dotenv");
-const nodemailer = require("nodemailer");
-const cors = require("cors");
+import express from "express";
+import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 
-// Cargar variables de entorno
 dotenv.config();
-
-// Importar rutas desde /backend/routes
-const guestRoutes = require("./backend/routes/guest.js");
-const callbackRoutes = require("./backend/routes/callback.js");
-const tokenRoutes = require("./backend/routes/token.js");
-const oauthRoutes = require("./backend/routes/oauth.js");
-const contactRoutes = require("./backend/routes/contact.js");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
 
-// ✅ Rutas organizadas por módulo
-app.use("/guest", guestRoutes);       // Guest Token (Webex Chat Widget)
-app.use("/callback", callbackRoutes); // Disparar llamadas Web Callback
-app.use("/token", tokenRoutes);       // Generar access_token a partir de refresh_token
-app.use("/oauth", oauthRoutes);       // Flujo OAuth inicial (solo se usa una vez)
-app.use("/contact", contactRoutes);   // Contacto via Email
+// ===============================
+// 🔧 Importar rutas de módulos
+// ===============================
+import guestRoutesModule from "./backend/routes/guest.js";
+import callbackRoutesModule from "./backend/routes/callback.js";
+import tokenRoutesModule from "./backend/routes/token.js";
+import oauthRoutesModule from "./backend/routes/oauth.js";
+import contactRoutesModule from "./backend/routes/contact.js";
 
-// Ruta de prueba
+// ✅ Compatibilidad con export default en Node ESM y Render
+const guestRoutes = guestRoutesModule.default || guestRoutesModule;
+const callbackRoutes = callbackRoutesModule.default || callbackRoutesModule;
+const tokenRoutes = tokenRoutesModule.default || tokenRoutesModule;
+const oauthRoutes = oauthRoutesModule.default || oauthRoutesModule;
+const contactRoutes = contactRoutesModule.default || contactRoutesModule;
+
+// ✅ Registrar rutas
+app.use("/guest", guestRoutes);
+app.use("/callback", callbackRoutes);
+app.use("/token", tokenRoutes);
+app.use("/oauth", oauthRoutes);
+app.use("/contact", contactRoutes);
+
+// ===============================
+// 🔍 Ruta de prueba
+// ===============================
 app.get("/", (req, res) => {
   res.send("🚀 Backend Webex WebCallback activo y escuchando");
 });
 
 // ===============================
-// ✉️ Endpoint para formulario de contacto
+// ✉️ Endpoint de contacto (Brevo SMTP directo)
 // ===============================
-app.post("/contact", async (req, res) => {
+app.post("/contact-form", async (req, res) => {
   const { nombre, email, asunto, mensaje } = req.body;
 
   if (!email || !mensaje) {
@@ -42,7 +50,6 @@ app.post("/contact", async (req, res) => {
   }
 
   try {
-    // Transportador usando SMTP de Brevo
     const transporter = nodemailer.createTransport({
       host: "smtp-relay.brevo.com",
       port: 587,
@@ -52,33 +59,32 @@ app.post("/contact", async (req, res) => {
       },
     });
 
-    // Configurar contenido del correo
     const mailOptions = {
-      from: `"${nombre || "Usuario Web"}" <${email}>`, // From: usuario final
-      to: "clientes.support@pocbancolombia.ucteamsidc.tigo.com.co", // To: soporte
-      replyTo: email, // para que el agente pueda responder al usuario
+      from: `"${nombre || "Usuario Web"}" <${process.env.BREVO_USER}>`,
+      to: "clientes.support@pocbancolombia.ucteamsidc.tigo.com.co",
+      replyTo: email,
       subject: asunto || "Nueva solicitud de contacto",
       text: `
-Nombre: ${nombre || "No especificado"}
+Nombre: ${nombre}
 Email: ${email}
-Asunto: ${asunto || "Sin asunto"}
+Asunto: ${asunto}
 Mensaje:
 ${mensaje}
       `,
     };
 
-    // Enviar correo
     await transporter.sendMail(mailOptions);
-
     res.status(200).json({ success: true, message: "Correo enviado exitosamente." });
   } catch (error) {
-    console.error("❌ Error enviando correo:", error);
+    console.error("Error enviando correo:", error);
     res.status(500).json({ success: false, message: "Error al enviar el correo." });
   }
 });
 
-// Render expone PORT dinámico
+// ===============================
+// 🚀 Arrancar servidor (Render)
+// ===============================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🚀 Backend escuchando en puerto ${PORT}`);
+  console.log(`✅ Backend escuchando en puerto ${PORT}`);
 });
