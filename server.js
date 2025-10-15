@@ -12,15 +12,18 @@ import guestRoutes from "./backend/routes/guest.js";
 import callbackRoutes from "./backend/routes/callback.js";
 import tokenRoutes from "./backend/routes/token.js";
 import oauthRoutes from "./backend/routes/oauth.js";
+import contactRoutes from "./backend/routes/contact.js";
+
 
 const app = express();
 app.use(express.json());
 
 // ✅ Rutas organizadas por módulo
-app.use("/guest", guestRoutes);       // Guest Token (opcional si usas Webex Chat Widget)
+app.use("/guest", guestRoutes);       // Guest Token (Webex Chat Widget)
 app.use("/callback", callbackRoutes); // Disparar llamadas Web Callback
 app.use("/token", tokenRoutes);       // Generar access_token a partir de refresh_token
 app.use("/oauth", oauthRoutes);       // Flujo OAuth inicial (solo se usa una vez)
+app.use("/contact", contactRoutes);  // Contacto via Email
 
 // Ruta de prueba
 app.get("/", (req, res) => {
