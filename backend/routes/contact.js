@@ -17,19 +17,20 @@ router.post("/", async (req, res) => {
     const transporter = nodemailer.createTransport({
       host: "smtp-relay.brevo.com",
       port: 587,
+      secure: false,
       auth: {
-        user: process.env.BREVO_USER, // tu correo o usuario Brevo
-        pass: process.env.BREVO_PASS, // tu API Key SMTP
+        user: process.env.BREVO_USER, // correo o usuario Brevo
+        pass: process.env.BREVO_PASS, // API Key SMTP
       },
     });
 
     // 📩 Construcción del correo
     const mailOptions = {
-      from: `"Clientes Support" <soporte@pocuc.com>`,
+      from: `"Soporte UCaaS" <soporte@pocuc.com>`,
       to: "clientes.support@pocbancolombia.ucteamsidc.tigo.com.co",
       replyTo: email, // 👈 El agente podrá responder al usuario directamente
       subject: subject || `Nuevo mensaje de ${name}`,
-      text: `Has recibido un nuevo mensaje:\n\nNombre: ${name}\nEmail: ${email}\n\nMensaje:\n${message}`,
+      text: `Se ha recibido un nuevo mensaje:\n\nNombre: ${name}\nEmail: ${email}\n\nMensaje:\n${message}`,
     };
 
     await transporter.sendMail(mailOptions);
