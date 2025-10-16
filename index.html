@@ -167,10 +167,10 @@ document.getElementById("contactForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const form = e.target;
-  const nombre = form.querySelector("[name='name']").value;
+  const name = form.querySelector("[name='name']").value;
   const email = form.querySelector("[name='email']").value;
-  const asunto = form.querySelector("[name='company']").value || "Solicitud de demo";
-  const mensaje = form.querySelector("[name='message']").value;
+  const subject = form.querySelector("[name='company']").value || "Solicitud de demo";
+  const message = form.querySelector("[name='message']").value;
 
   // Crear elemento de estado (si no existe)
   let statusDiv = document.getElementById("statusMessage");
