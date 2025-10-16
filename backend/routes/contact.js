@@ -26,9 +26,9 @@ router.post("/", async (req, res) => {
 
     // 📩 Construcción del correo
     const mailOptions = {
-      from: `"Soporte UCaaS" <soporte@pocuc.com>`,
+      from: `"Soporte UCaaS" <${process.env.BREVO_FROM}>`,
       to: "clientes.support@pocbancolombia.ucteamsidc.tigo.com.co",
-      replyTo: email, // 👈 El agente podrá responder al usuario directamente
+      replyTo: email, // El agente podrá responder al usuario directamente
       subject: subject || `Nuevo mensaje de ${name}`,
       text: `Se ha recibido un nuevo mensaje:\n\nNombre: ${name}\nEmail: ${email}\n\nMensaje:\n${message}`,
     };
