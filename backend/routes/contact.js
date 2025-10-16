@@ -1,6 +1,7 @@
 // backend/routes/contact.js
 import express from "express";
-import nodemailer from "nodemailer";
+//import nodemailer from "nodemailer";
+import fetch from "node-fetch"; 
 
 const router = express.Router();
 
@@ -12,35 +13,42 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "Faltan campos requeridos" });
   }
 
-  try {
-    // 🔐 Configuración SMTP de Brevo (Sendinblue)
-    const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_USER, // correo o usuario Brevo
-        pass: process.env.BREVO_PASS, // API Key SMTP
+    try {
+    const brevoResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": process.env.BREVO_API_KEY, // Usa API key (no SMTP key)
+        "content-type": "application/json",
       },
+      body: JSON.stringify({
+        sender: { name: "Soporte UCaaS", email: "soporte@pocuc.com" },
+        to: [{ email: "clientes.support@pocbancolombia.ucteamsidc.tigo.com.co" }],
+        replyTo: { email },
+        subject: subject || `Nuevo mensaje de ${name}`,
+        htmlContent: `
+          <h3>Nuevo mensaje recibido</h3>
+          <p><strong>Nombre:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Mensaje:</strong></p>
+          <p>${message}</p>
+        `
+      }),
     });
 
-    // 📩 Construcción del correo
-    const mailOptions = {
-      from: `"Soporte UCaaS" <${process.env.BREVO_FROM}>`,
-      to: "clientes.support@pocbancolombia.ucteamsidc.tigo.com.co",
-      replyTo: email, // El agente podrá responder al usuario directamente
-      subject: subject || `Nuevo mensaje de ${name}`,
-      text: `Se ha recibido un nuevo mensaje:\n\nNombre: ${name}\nEmail: ${email}\n\nMensaje:\n${message}`,
-    };
-
-    await transporter.sendMail(mailOptions);
+    if (!brevoResponse.ok) {
+      const errorData = await brevoResponse.text();
+      throw new Error(errorData);
+    }
 
     console.log(`✅ Correo enviado correctamente desde ${email}`);
     res.json({ success: true, message: "Correo enviado con éxito" });
+
   } catch (error) {
     console.error("❌ Error al enviar correo:", error);
     res.status(500).json({ error: "No se pudo enviar el correo" });
   }
 });
+
 
 export default router;
