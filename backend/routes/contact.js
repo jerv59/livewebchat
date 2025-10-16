@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        sender: { name: "Soporte UCaaS", email: "soporte@pocuc.com" },
+        sender: { name: `${name}`, email: "soporte@pocuc.com" },
         to: [{ email: "clientes.support@pocbancolombia.ucteamsidc.tigo.com.co" }],
         replyTo: { email },
         subject: subject || `Nuevo mensaje de ${name}`,
