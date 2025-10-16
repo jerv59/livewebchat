@@ -27,7 +27,7 @@ router.post("/", async (req, res) => {
         replyTo: { email },
         subject: subject || `Nuevo mensaje de ${name}`,
         htmlContent: `
-          <h3>Nuevo mensaje recibido</h3>
+          <h3>Nuevo mensaje recibido desde la WEB</h3>
           <p><strong>Nombre:</strong> ${name}</p>
           <p><strong>Email:</strong> ${email}</p>
           <p><strong>Mensaje:</strong></p>
